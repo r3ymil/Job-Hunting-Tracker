@@ -1,32 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Job Hunting Tracker</title>
-  <link rel="stylesheet" href="index.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Hunt Tracker</title>
+    <link rel="stylesheet" href="wht.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Job Hunting Tracker</h1>
+    <div class="container">
+        <h1>My Work Hunt Tracker 🕵️‍♀️</h1>
 
-    <form id="job-form">
-      <input type="text" id="company" placeholder="Company Name" required />
-      <input type="text" id="roles" placeholder="Roles Applied (comma separated)" required />
-      <select id="status">
-        <option value="Pending">Pending</option>
-        <option value="Assessment">Assessment</option>
-        <option value="Initial Interview">Initial Interview</option>
-        <option value="Final Interview">Final Interview</option>
-        <option value="Rejected">Rejected</option>
-        <option value="Passed">Passed</option>
-      </select>
-      <button type="submit">Add Application</button>
-    </form>
+        <form id="applicationForm">
+            <input type="text" id="companyName" placeholder="Company Name" required>
+            <input type="text" id="roleName" placeholder="Applied Role" required> <select id="applicationStatus">
+                <option value="Pending">Pending</option>
+                <option value="Initial Interview">Initial Interview</option>
+                <option value="Assessment">Assessment</option>
+                <option value="Final Interview">Final Interview</option>
+                <option value="Passed">Passed</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Offer">Offer</option>
+            </select>
+            <button type="submit">Add Application</button>
+        </form>
 
-    <ul id="job-list"></ul>
-  </div>
+        <table id="applicationTable">
+            <thead>
+                <tr>
+                    <th>Company Name</th>
+                    <th>Role</th> <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
 
-  <script src="index.js"></script>
+    <script src="wht.js"></script>
 </body>
 </html>
