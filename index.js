@@ -1,106 +1,110 @@
-const jobForm = document.getElementById('job-form');
-const jobList = document.getElementById('job-list');
+document.addEventListener('DOMContentLoaded', () => {
+    const applicationForm = document.getElementById('applicationForm');
+    const companyNameInput = document.getElementById('companyName');
+    const roleNameInput = document.getElementById('roleName'); // Get the new role input
+    const applicationStatusSelect = document.getElementById('applicationStatus');
+    const applicationTableBody = document.querySelector('#applicationTable tbody');
 
-// Load from localStorage
-document.addEventListener('DOMContentLoaded', loadJobs);
+    let applications = JSON.parse(localStorage.getItem('applications')) || [];
 
-jobForm.addEventListener('submit', function (e) {
-  e.preventDefault();
+    // Function to render applications in the table
+    function renderApplications() {
+        applicationTableBody.innerHTML = ''; // Clear existing rows
+        applications.forEach((app, index) => {
+            const row = applicationTableBody.insertRow();
+            row.dataset.index = index; // Store the index for easy access
 
-  const company = document.getElementById('company').value.trim();
-  const roles = document.getElementById('roles').value.trim();
-  const status = document.getElementById('status').value;
+            // Company Name Cell
+            const companyCell = row.insertCell();
+            companyCell.textContent = app.company;
+            companyCell.contentEditable = true; // Make company name editable
+            companyCell.addEventListener('blur', (e) => {
+                const newCompanyName = e.target.textContent.trim();
+                if (newCompanyName !== app.company) {
+                    app.company = newCompanyName;
+                    saveApplications();
+                }
+            });
 
-  if (!company || !roles) return;
+            // Role Cell (New)
+            const roleCell = row.insertCell();
+            roleCell.textContent = app.role; // Display the role
+            roleCell.contentEditable = true; // Make role editable
+            roleCell.addEventListener('blur', (e) => {
+                const newRoleName = e.target.textContent.trim();
+                if (newRoleName !== app.role) {
+                    app.role = newRoleName;
+                    saveApplications();
+                }
+            });
 
-  const job = {
-    id: Date.now(),
-    company,
-    roles,
-    status
-  };
+            // Status Cell
+            const statusCell = row.insertCell();
+            const statusDropdown = document.createElement('select');
+            statusDropdown.classList.add('status-dropdown');
+            ['Pending', 'Initial Interview', 'Assessment', 'Final Interview', 'Passed', 'Rejected', 'Offer'].forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status;
+                if (status === app.status) {
+                    option.selected = true;
+                }
+                statusDropdown.appendChild(option);
+            });
+            statusDropdown.addEventListener('change', (e) => {
+                app.status = e.target.value;
+                saveApplications();
+            });
+            statusCell.appendChild(statusDropdown);
 
-  addJobToDOM(job);
-  saveJobToStorage(job);
+            // Actions Cell (Remove Button)
+            const actionsCell = row.insertCell();
+            actionsCell.classList.add('action-buttons');
 
-  jobForm.reset();
-});
-
-function addJobToDOM(job) {
-  const li = document.createElement('li');
-  li.className = 'job-item';
-  li.dataset.id = job.id;
-
-  const statusOptions = [
-    'Pending',
-    'Assessment',
-    'Initial Interview',
-    'Final Interview',
-    'Rejected',
-    'Passed'
-  ];
-
-  const statusSelect = document.createElement('select');
-  statusSelect.className = 'status-dropdown';
-
-  statusOptions.forEach(option => {
-    const opt = document.createElement('option');
-    opt.value = option;
-    opt.textContent = option;
-    if (option === job.status) opt.selected = true;
-    statusSelect.appendChild(opt);
-  });
-
-  statusSelect.addEventListener('change', () => {
-    updateJobStatus(job.id, statusSelect.value);
-  });
-
-  li.innerHTML = `
-    <span><strong>Company:</strong> ${job.company}</span>
-    <span><strong>Roles:</strong> ${job.roles}</span>
-  `;
-  li.appendChild(statusSelect);
-
-  const removeBtn = document.createElement('span');
-  removeBtn.textContent = 'Remove';
-  removeBtn.className = 'remove-btn';
-  removeBtn.addEventListener('click', () => {
-    removeJob(job.id);
-  });
-
-  li.appendChild(removeBtn);
-  jobList.appendChild(li);
-}
-
-function saveJobToStorage(job) {
-  const jobs = getJobsFromStorage();
-  jobs.push(job);
-  localStorage.setItem('jobs', JSON.stringify(jobs));
-}
-
-function getJobsFromStorage() {
-  return JSON.parse(localStorage.getItem('jobs')) || [];
-}
-
-function loadJobs() {
-  const jobs = getJobsFromStorage();
-  jobs.forEach(job => addJobToDOM(job));
-}
-
-function removeJob(id) {
-  const jobs = getJobsFromStorage().filter(job => job.id !== id);
-  localStorage.setItem('jobs', JSON.stringify(jobs));
-
-  const item = document.querySelector(`.job-item[data-id='${id}']`);
-  if (item) item.remove();
-}
-
-function updateJobStatus(id, newStatus) {
-  const jobs = getJobsFromStorage().map(job => {
-    if (job.id === id) {
-      job.status = newStatus;
+            const removeButton = document.createElement('button');
+            removeButton.textContent = 'Remove';
+            removeButton.classList.add('remove-btn');
+            removeButton.addEventListener('click', () => {
+                removeApplication(index);
+            });
+            actionsCell.appendChild(removeButton);
+        });
     }
-    return job;
-  });
-  localStorage.setItem('jobs', JSON.stringify(jobs));
-}
+
+    // Function to add a new application
+    applicationForm.addEventListener('submit', (e) => {
+        e.preventDefault(); // Prevent default form submission
+
+        const newApplication = {
+            company: companyNameInput.value.trim(),
+            role: roleNameInput.value.trim(), // Include the new role field
+            status: applicationStatusSelect.value
+        };
+
+        if (newApplication.company && newApplication.role) { // Ensure both company and role are filled
+            applications.push(newApplication);
+            saveApplications();
+            companyNameInput.value = ''; // Clear company input
+            roleNameInput.value = ''; // Clear role input
+            applicationStatusSelect.value = 'Pending'; // Reset status dropdown
+            renderApplications(); // Re-render the table
+        } else {
+            alert('Please enter both Company Name and Applied Role.');
+        }
+    });
+
+    // Function to remove an application
+    function removeApplication(index) {
+        applications.splice(index, 1); // Remove the application at the given index
+        saveApplications();
+        renderApplications(); // Re-render the table
+    }
+
+    // Function to save applications to local storage
+    function saveApplications() {
+        localStorage.setItem('applications', JSON.stringify(applications));
+    }
+
+    // Initial render when the page loads
+    renderApplications();
+});
